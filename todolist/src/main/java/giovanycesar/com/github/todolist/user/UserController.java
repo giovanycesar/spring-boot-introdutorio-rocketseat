@@ -4,11 +4,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
@@ -19,24 +20,19 @@ public class UserController {
     private IUserRepository userRepository;
 
     @PostMapping("/create")
-    public UserModel create(@RequestBody UserModel userModel) {
+    public ResponseEntity create(@RequestBody UserModel userModel) {
         var user = userRepository.findByUsername(userModel.getUsername());
 
         if (user != null) {
-            System.out.println("Usuário já existe.");
-            return null;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário já existe");
         }
+
+        var passwordHashed = BCrypt.withDefaults().hashToString(12, userModel.getPassword().toCharArray());
+
+        userModel.setPassword(passwordHashed);
 
         var userCreated = userRepository.save(userModel);
 
-        return userCreated;
-    }
-
-    @DeleteMapping(value = "/{id}")
-    public void delete(@PathVariable("id") UUID id) {
-        UserModel entity = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        userRepository.delete(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userCreated);
     }
 }
