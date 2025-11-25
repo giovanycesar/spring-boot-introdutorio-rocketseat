@@ -1,17 +1,21 @@
 package giovanycesar.com.github.todolist.task;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/tasks")
@@ -20,7 +24,7 @@ public class TaskController {
     @Autowired
     private ITaskRepository taskRepository;
 
-    @PostMapping("/create")
+    @PostMapping("/")
     public ResponseEntity create(@RequestBody TaskModel taskModel, HttpServletRequest request) {
 
         var userId = request.getAttribute("userId");
@@ -42,5 +46,30 @@ public class TaskController {
         var task = taskRepository.save(taskModel);
 
         return ResponseEntity.status(HttpStatus.OK).body(task);
+    }
+
+    @GetMapping("/")
+    public List<TaskModel> list(HttpServletRequest request) {
+
+        var userId = request.getAttribute("userId");
+
+        var tasks = taskRepository.findByUserId((UUID) userId);
+
+        return tasks;
+    }
+
+    @PutMapping("/{id}")
+    public TaskModel update(@RequestBody TaskModel taskModel, HttpServletRequest request, @PathVariable UUID id) {
+
+        var task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        task.setTitle(taskModel.getTitle());
+        task.setDescription(taskModel.getDescription());
+        task.setStartAt(taskModel.getStartAt());
+        task.setEndAt(taskModel.getEndAt());
+        task.setPriority(taskModel.getPriority());
+
+        return taskRepository.save(task);
     }
 }
