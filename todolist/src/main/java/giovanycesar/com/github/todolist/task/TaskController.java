@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import giovanycesar.com.github.todolist.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 
@@ -64,11 +65,7 @@ public class TaskController {
         var task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        task.setTitle(taskModel.getTitle());
-        task.setDescription(taskModel.getDescription());
-        task.setStartAt(taskModel.getStartAt());
-        task.setEndAt(taskModel.getEndAt());
-        task.setPriority(taskModel.getPriority());
+        Utils.copyNonNullProperties(taskModel, task);
 
         return taskRepository.save(task);
     }
