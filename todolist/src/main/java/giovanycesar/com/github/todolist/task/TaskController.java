@@ -46,7 +46,7 @@ public class TaskController {
 
         var task = taskRepository.save(taskModel);
 
-        return ResponseEntity.status(HttpStatus.OK).body(task);
+        return ResponseEntity.status(HttpStatus.CREATED).body(task);
     }
 
     @GetMapping("/")
@@ -74,6 +74,6 @@ public class TaskController {
 
         Utils.copyNonNullProperties(taskModel, task);
 
-        return ResponseEntity.ok().body(taskRepository.save(task));
+        return ResponseEntity.status(HttpStatus.OK).body(taskRepository.save(task));
     }
 }
